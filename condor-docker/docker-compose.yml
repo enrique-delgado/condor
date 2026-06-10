@@ -1,0 +1,153 @@
+version: '3.9'
+
+services:
+#  condor--gateway:
+#    build: ../condor-gateway
+#    container_name: condor-gateway
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      SPRING_PROFILES_ACTIVE: prod
+#    depends_on:
+#      - condor-customers-manager
+#      - condor-transactions-manager
+#
+
+  condor--transactions-manager:
+    build: ../condor-transactions-manager
+    container_name: condor-transactions-manager
+    ports:
+      - "2000:2000"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/condor?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: condor
+      SPRING_DATASOURCE_PASSWORD: secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9094
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  condor--customers-manager:
+    build: ../condor-customers-manager
+    container_name: condor-customers-manager
+    ports:
+      - "1000:1000"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/condor?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: condor
+      SPRING_DATASOURCE_PASSWORD: secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  condor--transactions-engine:
+    build: ../condor-transactions-engine
+    container_name: condor-transactions-engine
+    ports:
+      - "3000:3000"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/condor?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: condor
+      SPRING_DATASOURCE_PASSWORD: secret
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9094
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  mysql:
+    image: mysql:8.0
+    container_name: condor-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: condor
+      MYSQL_USER: condor
+      MYSQL_PASSWORD: secret
+      command: --default-authentication-plugin=mysql_native_password --log-bin-trust-function-creators=1
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  kafka:
+    image: apache/kafka:latest
+    container_name: condor-kafka-broker
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT_INTERNAL://0.0.0.0:9094,PLAINTEXT_EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT_INTERNAL://kafka:9094,PLAINTEXT_EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT,PLAINTEXT_EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+    ports:
+      - "9092:9092"   # externo (para clientes fuera de Docker)
+      - "9094:9094"   # interno (para Kafka UI)
+    depends_on:
+      - kafka-ui
+
+  kafka-ui:
+    image: kafbat/kafka-ui:latest
+    container_name: condor-kafka-ui
+    ports:
+      - "11000:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9094
+
+#  redis:
+#    image: redis:7.2
+#    container_name: condor-redis
+#    ports:
+#      - "6379:6379"
+#
+#  otel-collector:
+#    image: otel/opentelemetry-collector-contrib:0.102.0
+#    container_name: condor-otel-collector
+#    command: ["--config=/etc/otel-collector-config.yaml"]
+#    volumes:
+#      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+#    ports:
+#      - "4317:4317"   # OTLP gRPC
+#      - "4318:4318"   # OTLP HTTP
+#
+#  prometheus:
+#    image: prom/prometheus:latest
+#    container_name: condor-prometheus
+#    volumes:
+#      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+#    ports:
+#      - "9090:9090"
+#
+#  grafana:
+#    image: grafana/grafana:latest
+#    container_name: condor-grafana
+#    ports:
+#      - "3000:3000"
+#    environment:
+#      - GF_SECURITY_ADMIN_PASSWORD=admin
+#    volumes:
+#      - ./grafana/dashboards:/var/lib/grafana/dashboards
+#      - ./grafana/provisioning:/etc/grafana/provisioning
+#    depends_on:
+#      - prometheus
+
+volumes:
+  mysql_data:

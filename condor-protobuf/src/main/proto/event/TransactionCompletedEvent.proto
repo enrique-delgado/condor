@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package condor.event;
+
+option java_package = "com.condor.event";
+option java_outer_classname = "TransactionCompletedEventProto";
+
+message TransactionCompletedEvent {
+  string id = 1;
+  int64 accountId = 2;
+  double amount = 3;
+  double balanceAfter = 4;
+  string status = 5;
+  string errorMessage = 6;
+  int64 completedAt = 7;
+}

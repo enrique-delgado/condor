@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package condor.api;
+
+option java_package = "com.condor.api";
+option java_outer_classname = "CustomerResponseProto";
+
+message CustomerResponse {
+  int64 id = 1;
+  string firstName = 2;
+  string lastName = 3;
+  string gender = 4;
+  string birthDate = 5;
+  string identification = 6;
+  string address = 7;
+  string phone = 8;
+  string password = 9;
+  bool active = 10;
+}

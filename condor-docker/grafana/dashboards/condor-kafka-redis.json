@@ -1,0 +1,50 @@
+{
+  "id": null,
+  "title": "Condor Kafka & Redis",
+  "tags": ["condor", "observability"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Kafka Messages Produced",
+      "targets": [
+        {
+          "expr": "rate(kafka_server_brokertopicmetrics_messages_in_total[1m])",
+          "legendFormat": "Produced"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Kafka Messages Consumed",
+      "targets": [
+        {
+          "expr": "rate(kafka_server_brokertopicmetrics_messages_out_total[1m])",
+          "legendFormat": "Consumed"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Redis Cache Hits",
+      "targets": [
+        {
+          "expr": "rate(redis_keyspace_hits_total[1m])",
+          "legendFormat": "Hits"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Redis Cache Misses",
+      "targets": [
+        {
+          "expr": "rate(redis_keyspace_misses_total[1m])",
+          "legendFormat": "Misses"
+        }
+      ]
+    }
+  ]
+}

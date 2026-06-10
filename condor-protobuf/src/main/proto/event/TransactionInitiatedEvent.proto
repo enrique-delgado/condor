@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package condor.event;
+
+option java_package = "com.condor.event";
+option java_outer_classname = "TransactionInitiatedEventProto";
+
+message TransactionInitiatedEvent {
+  string id = 1;
+  int64 accountId = 2;
+  double amount = 3;
+  int64 requestedAt = 4;
+}

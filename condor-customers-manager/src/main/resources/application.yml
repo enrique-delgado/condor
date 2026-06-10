@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: condor-customers-manager
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/condor
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: condor
+    password: secret
+
+server:
+  port: 1000
+
+logging:
+  level:
+    root: INFO
+    org.springframework: WARN
+    com.condor.customersmanager: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  health:
+    db:
+      enabled: true
+    redis:
+      enabled: true
+    kafka:
+      enabled: true
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+
+logging:
+  level:
+    root: WARN
+    org.springframework: ERROR
+    com.condor.customersmanager: INFO
