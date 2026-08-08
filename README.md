@@ -49,5 +49,3 @@ Future improvements include:
 
 ## 🙌 Closing Note
 This project showcases a practical and scalable architecture for a money transfer platform, balancing **performance**, **scalability**, and **client experience**. It is designed as an MVP but with a clear path toward enterprise-grade capabilities.
-
-Thank you for reviewing this technical assessment.
